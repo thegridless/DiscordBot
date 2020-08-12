@@ -13,4 +13,4 @@ async def test(ctx, arg):  # создаем асинхронную фунцию 
     await ctx.send(arg)  # отправляем обратно аргумент
 
 
-bot.run(TOKEN)  # запуск бота
+bot.run(TOKEN)  # запуск бота//
