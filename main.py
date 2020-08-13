@@ -1,4 +1,4 @@
-# Discord Bot # название
+# Discord Bot # MAFIA
 import typing
 import discord
 from discord.ext import commands  # подгрузка библиотек
