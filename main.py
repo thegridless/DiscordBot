@@ -18,7 +18,7 @@ async def play(ctx):#функция для !play
         players.append(ctx.author.discriminator);
         global pcounter #использование глобальной переменной pcounter
         await ctx.send("Игрок " + str(ctx.author) +" присоединился к игре \n" + "Количество игроков : " + str(len(players)))
-        await ctx.send(players)
+
 
 
 @bot.command()  # правила игры
