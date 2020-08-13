@@ -1,29 +1,36 @@
 # Discord Bot # MAFIA
 import typing
 import discord
+import random
 from discord.ext import commands  # подгрузка библиотек
 
 TOKEN = 'NzQzMDc1MjE1MzEwODQ4MDAw.XzPYuQ.ksRcVxyBqRGXHWWZ6VemWNZCr5Q'  # токен бота
 
-players =[] #массив игроков
+players = []  # массив игроков
+
+
+m_count = len(players) / 3.5  # формула для расчета количества членов мафии в игре
 
 bot = commands.Bot(command_prefix='!')  # инициализация преффикса
 
 
 @bot.command(pass_context=True)  # разрешаем передавать агрументы
-async def play(ctx):#функция для !play
-    if(ctx.author.discriminator in players):
-       await ctx.send(str(ctx.author.mention)+", вы уже в игре")
+async def play(ctx):  # функция для !play
+    if (ctx.author.discriminator in players):
+        await ctx.send(str(ctx.author.mention) + ", вы уже в игре")
     else:
-        players.append(ctx.author.discriminator);
-        global pcounter #использование глобальной переменной pcounter
-        await ctx.send("Игрок " + str(ctx.author.mention) +" присоединился к игре \n" + "Количество игроков : " + str(len(players)))
-
+        players.append(ctx.author.discriminator)
+        global pcounter  # использование глобальной переменной pcounter
+        await ctx.send("Игрок " + str(ctx.author.mention) + " присоединился к игре \n" + "Количество игроков : " + str(len(players)))
 
 
 @bot.command()  # правила игры
 async def rules(ctx):
     await ctx.send('Правила игры в Мафию: https://www.eventnn.ru/articles/item/68/1029/')
 
+#берем из списка в зависимости от количества m_count челов и отдаем им роль мафии а остальным даем мирных
+@bot.command()  # сообщение в лс кто я
+async def ready(ctx):
+   await ctx.author.send("говна кусок")
 
 bot.run(TOKEN)  # запуск бота//
