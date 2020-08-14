@@ -3,7 +3,7 @@ import typing
 import discord
 import random
 from discord.ext import commands  # подгрузка библиотек
-
+from discord.utils import get
 TOKEN = 'NzQzMDc1MjE1MzEwODQ4MDAw.XzPYuQ.ksRcVxyBqRGXHWWZ6VemWNZCr5Q'  # токен бота
 
 players = []  # массив игроков
@@ -59,15 +59,30 @@ async def rules(ctx):
 # берем из списка в зависимости от количества m_count челов и отдаем им роль мафии а остальным даем мирных
 @bot.command()  # сообщение в лс кто я
 async def start(ctx):
-    guild = ctx.message.guild
-    channel = guild.create_voice_channel('Мафиозники')
+    global voice
+    c = ctx.message.author.voice.channel
+    voice = get(bot.voice_clients, guild=ctx.guild)
+
+    if voice and voice.is_connected():
+        await voice.move_to(c)
+    else:
+        voice = await c.connect()
+
+    await voice.disconnect()
+
+    if voice and voice.is_connected():
+        await voice.move_to(c)
+    else:
+        voice = await c.connect()
+    # guild = ctx.message.guild
+    # channel = guild.create_voice_channel('Мафиозники')
     # await guild.create_voice_channel('Мафиозники')
-    for element in players:
-        # берем id каждого юзера написавшего !play
-        user = bot.get_user(element.id)
-        # отправляем ему роль
-        await user.send("говна кусок")
-        # await ctx.move_member(element, channel)
+    # for element in players:
+    #     # берем id каждого юзера написавшего !play
+    #     user = bot.get_user(element.id)
+    #     # отправляем ему роль
+    #     await user.send("говна кусок")
+    #     # await ctx.move_member(element, channel)
 
 
 @bot.command()
