@@ -56,7 +56,12 @@ async def rules(ctx):
 
 #берем из списка в зависимости от количества m_count челов и отдаем им роль мафии а остальным даем мирных
 @bot.command()  # сообщение в лс кто я
-async def ready(ctx):
-   await ctx.author.send("говна кусок")
+async def start(ctx):
+    guild = ctx.message.guild
+    channel = guild.create_voice_channel('Мафиозники')
+    await guild.create_voice_channel('Мафиозники')
+    await ctx.author.send("говна кусок")
+    for element in players:
+        await bot.move_member(element, channel)
 
 bot.run(TOKEN)  # запуск бота//
