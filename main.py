@@ -108,9 +108,7 @@ async def mafiap(ctx):  # рабочая отправляет в лс кто т�
         else:
             maf.append(jke)
         f += 1
-    print(maf)
     maf.sort()
-    print(maf)
     i = 0
     j = 0
     for i in range(len(players)):
