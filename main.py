@@ -4,6 +4,7 @@ import discord
 import random
 from discord.ext import commands  # подгрузка библиотек
 from discord.utils import get
+
 TOKEN = 'NzQzMDc1MjE1MzEwODQ4MDAw.XzPYuQ.ksRcVxyBqRGXHWWZ6VemWNZCr5Q'  # токен бота
 
 players = []  # массив игроков
@@ -86,7 +87,16 @@ async def start(ctx):
 
 
 @bot.command()
-async def mafiap(ctx): #рабочая отправляет в лс кто ты есть на самом деле
+async def left(ctx):
+    c = ctx.message.author.voice.channel
+    voice = get(bot.voice_clients, guild=ctx.guild)
+    if voice and voice.is_connected():
+        await voice.disconnect()
+
+
+
+@bot.command()
+async def mafiap(ctx):  # рабочая отправляет в лс кто ты есть на самом деле
     f = 0
     while f < m_count:
         maf = random.randint(0, len(players))
@@ -99,7 +109,6 @@ async def mafiap(ctx): #рабочая отправляет в лс кто ты 
         else:
             user = bot.get_user(players[i].id)
             await user.send('ты мирный ')
-
 
 
 bot.run(TOKEN)  # запуск бота//
