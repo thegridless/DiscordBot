@@ -16,10 +16,10 @@ bot = commands.Bot(command_prefix='!')  # инициализация префф�
 
 @bot.command(pass_context=True)  # разрешаем передавать агрументы
 async def play(ctx):  # функция для !play
-    if (ctx.author.mention in players):
-        await ctx.send(str(ctx.author.mention) + ", вы уже в игре")
+    if (ctx.author in players):
+        await ctx.send(str(ctx.author) + ", вы уже в игре")
     else:
-        players.append(ctx.author.mention)
+        players.append(ctx.author)
         # global pcounter  # использование глобальной переменной pcounter
         # await ctx.send("Игрок " + str(ctx.author.mention) + " присоединился к игре \n" + "Количество игроков : " + str(len(players)))
         # await ctx.send("Список текущих игроков: ")
@@ -35,7 +35,7 @@ async def play(ctx):  # функция для !play
         embed.set_footer(text='Хорошей игры')
         embed.set_image(url='https://2ch.hk/b/arch/2020-07-07/src/224156532/15940650663840.png')
         embed.add_field(name="Количество участников: ",value=str(len(players)),inline=True)
-        embed.add_field(name='Список участников',value=','.join([str(elem) for elem in players]),inline=False)
+        embed.add_field(name='Список участников',value=','.join([str(elem.mention) for elem in players]),inline=False)
 
         await ctx.send(embed=embed)
 
@@ -59,9 +59,12 @@ async def rules(ctx):
 async def start(ctx):
     guild = ctx.message.guild
     channel = guild.create_voice_channel('Мафиозники')
-    await guild.create_voice_channel('Мафиозники')
-    await ctx.author.send("говна кусок")
+    # await guild.create_voice_channel('Мафиозники')
     for element in players:
-        await bot.move_member(element, channel)
+        #берем id каждого юзера написавшего !play
+        user = bot.get_user(element.id)
+        #отправляем ему роль
+        await user.send("говна кусок")
+        # await ctx.move_member(element, channel)
 
 bot.run(TOKEN)  # запуск бота//
