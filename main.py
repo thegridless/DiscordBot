@@ -11,7 +11,7 @@ players = []  # массив игроков
 mafia = []
 # m_count = len(players) / 3.5  # формула для расчета количества членов мафии в игре
 # round(m_count)
-m_count = 1
+# m_count = 1
 
 bot = commands.Bot(command_prefix='!')  # инициализация преффикса
 
@@ -87,28 +87,42 @@ async def start(ctx):
 
 
 @bot.command()
-async def left(ctx):
+async def left(ctx):  # функция для выхода из voice канала
     c = ctx.message.author.voice.channel
     voice = get(bot.voice_clients, guild=ctx.guild)
     if voice and voice.is_connected():
         await voice.disconnect()
 
 
-
 @bot.command()
 async def mafiap(ctx):  # рабочая отправляет в лс кто ты есть на самом деле
     f = 0
+    maf = []
+    m_count = len(players) / 3.5
+    round(m_count)
     while f < m_count:
-        maf = random.randint(0, len(players))
+        jke = random.randint(0, len(players) - 1)
+        # maf.append(random.randint(0, len(players)))
+        if jke in maf:
+            f -= 1
+        else:
+            maf.append(jke)
         f += 1
+    print(maf)
+    maf.sort()
+    print(maf)
     i = 0
+    j = 0
     for i in range(len(players)):
-        if i == maf:
-            user = bot.get_user(players[maf].id)
+        if i == maf[j]:
+            user = bot.get_user(players[i].id)
             await user.send('ты мафия ')
+            if j < len(maf):
+                j+=1
         else:
             user = bot.get_user(players[i].id)
             await user.send('ты мирный ')
+
 
 
 bot.run(TOKEN)  # запуск бота//
