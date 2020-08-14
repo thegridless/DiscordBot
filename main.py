@@ -28,15 +28,14 @@ async def play(ctx):  # функция для !play
 
 
         embed = discord.Embed(
-            title=ctx.author.mention,
+            description=str(ctx.author.mention) + " присоединился к игре",
             colour=discord.Colour.blue()
         )
 
         embed.set_footer(text='Хорошей игры')
         embed.set_image(url='https://2ch.hk/b/arch/2020-07-07/src/224156532/15940650663840.png')
-        embed.set_thumbnail(url='https://2ch.hk/b/arch/2020-07-07/src/224156532/15940650663840.png')
-        embed.add_field(name="Количетсво участников: ",value=str(len(players)),inline=True)
-        embed.add_field(name='Список участников',value=str(players),inline=False)
+        embed.add_field(name="Количество участников: ",value=str(len(players)),inline=True)
+        embed.add_field(name='Список участников',value=','.join([str(elem) for elem in players]),inline=False)
 
         await ctx.send(embed=embed)
 
