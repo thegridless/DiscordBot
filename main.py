@@ -16,12 +16,26 @@ bot = commands.Bot(command_prefix='!')  # инициализация префф�
 
 @bot.command(pass_context=True)  # разрешаем передавать агрументы
 async def play(ctx):  # функция для !play
-    if (ctx.author.discriminator in players):
+    if (ctx.author.mention in players):
         await ctx.send(str(ctx.author.mention) + ", вы уже в игре")
     else:
-        players.append(ctx.author.discriminator)
+        players.append(ctx.author.mention)
         global pcounter  # использование глобальной переменной pcounter
         await ctx.send("Игрок " + str(ctx.author.mention) + " присоединился к игре \n" + "Количество игроков : " + str(len(players)))
+        await ctx.send("Список текущих игроков: ")
+        for element in players:
+            await ctx.send(element)
+
+
+#функция для того чтобы покинуть игру
+@bot.command()
+async def leave(ctx):
+    #условие для проверки учатсвует ли игрок в некст игре
+    if (ctx.author.mention in players):
+        players.remove(ctx.author.mention)
+        await ctx.send(str(ctx.author.mention) + ", вы покинули следующую игру")
+    else:
+        await ctx.send(str(ctx.author.mention)+", вы не участвуете в следующей игре")
 
 
 @bot.command()  # правила игры
