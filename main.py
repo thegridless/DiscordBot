@@ -103,24 +103,28 @@ async def mafiap():  # рабочая отправляет в лс кто ты �
     for i in range(len(players)):
         if i == maf[j]:
             user = bot.get_user(players[i].id)
-            await user.send('ты мафия ')
+            await user.send('ты мафия')
             if j < len(maf):
                 j += 1
         else:
             user = bot.get_user(players[i].id)
             await user.send('ты мирный ')
-    don_randon = random.randint(0, len(maf)-1)
-    user1 = bot.get_user(maf[don_randon].id)
-    await user1.send('ты еще и дон(гандон)')
+
+    den = []
+    for i in range(len(players)):
+        if i == maf:
+            den.append(players[i])
+            don_randon = random.randint(0, len(den) - 1)
+            user1 = bot.get_user(den[don_randon].id)
+            await user1.send('ты еще и дон(гандон)')
+
     acab = []
-    for i in players:
-        if i not in maf:
-            print(i)
+    for i in range(len(players)):
+        if i != maf:
             acab.append(players[i])
-            acab_rand = random.randint(0, len(acab) - 1 )
+            acab_rand = random.randint(0, len(acab) - 1)
             user2 = bot.get_user(acab[acab_rand].id)
             await user2.send('а ты полицейский брат')
-
 
 
 async def t_rand():
