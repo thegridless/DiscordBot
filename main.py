@@ -114,6 +114,16 @@ async def roles():  # рабочая отправляет в лс кто ты е
         else:
             acab_random = random.randint(0, len(players) - 1)
 
+        doctor_random = random.randint(0, len(players) - 1)
+        if doctor_random not in maf and doctor_random != acab_random:
+            user3 = bot.get_user(players[doctor_random].id)
+            await user3.send('Ваша роль - Доктор.')
+            break
+        else:
+            doctor_random = random.randint(0, len(players) - 1)
+
+
+
     j = 0
     for i in range(len(players)):
         if i == maf[j]:
