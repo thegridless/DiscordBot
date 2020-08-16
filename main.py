@@ -9,35 +9,24 @@ TOKEN = 'NzQzMDc1MjE1MzEwODQ4MDAw.XzPYuQ.ksRcVxyBqRGXHWWZ6VemWNZCr5Q'  # ток�
 
 players = []  # массив игроков
 mafia = []
-# m_count = len(players) / 3.5  # формула для расчета количества членов мафии в игре
-# round(m_count)
-# m_count = 1
 
 bot = commands.Bot(command_prefix='!')  # инициализация преффикса
 
 
 @bot.command(pass_context=True)  # разрешаем передавать агрументы
 async def play(ctx):  # функция для !play
-    if (ctx.author in players):
+    if ctx.author in players:
         await ctx.send(str(ctx.author) + ", вы уже в игре")
     else:
         players.append(ctx.author)
-        # global pcounter  # использование глобальной переменной pcounter
-        # await ctx.send("Игрок " + str(ctx.author.mention) + " присоединился к игре \n" + "Количество игроков : " + str(len(players)))
-        # await ctx.send("Список текущих игроков: ")
-        # for element in players:
-        #     await ctx.send(element)
-
         embed = discord.Embed(
             description=str(ctx.author.mention) + " присоединился к игре",
             colour=discord.Colour.blue()
         )
-
         embed.set_footer(text='Хорошей игры')
         embed.set_image(url='https://2ch.hk/b/arch/2020-07-07/src/224156532/15940650663840.png')
         embed.add_field(name="Количество участников: ", value=str(len(players)), inline=True)
         embed.add_field(name='Список участников', value=','.join([str(elem.mention) for elem in players]), inline=False)
-
         await ctx.send(embed=embed)
 
 
@@ -45,8 +34,8 @@ async def play(ctx):  # функция для !play
 @bot.command()
 async def leave(ctx):
     # условие для проверки учатсвует ли игрок в некст игре
-    if (ctx.author.mention in players):
-        players.remove(ctx.author.mention)
+    if ctx.author in players:
+        players.remove(ctx.author)
         await ctx.send(str(ctx.author.mention) + ", вы покинули следующую игру")
     else:
         await ctx.send(str(ctx.author.mention) + ", вы не участвуете в следующей игре")
@@ -58,56 +47,48 @@ async def rules(ctx):
 
 
 # берем из списка в зависимости от количества m_count челов и отдаем им роль мафии а остальным даем мирных
-@bot.command()  # сообщение в лс кто я
+@bot.command()  # начало игры
 async def start(ctx):
-
     guild = ctx.message.guild
-    channel =await guild.create_voice_channel('Мафиозники')
-    # await guild.create_voice_channel('Мафиозники')
-
-
-    # global voice
-    # c = ctx.message.author.voice.channel
-    # voice = get(bot.voice_clients, guild=ctx.guild)
-    #
-    # if voice and voice.is_connected():
-    #     await voice.move_to(channel)
-    # else:
-    #     voice = await channel.connect()
-    #
-    # await voice.disconnect()
-    #
-    # if voice and voice.is_connected():
-    #     await voice.move_to(channel)
-    # else:
-    #     voice = await channel.connect()
-
-    for element in players:
-        # # берем id каждого юзера написавшего !play
-        # user = bot.get_user(element.id)
-
-
-        # перенос юзеров написавших !play в новый канал
-        await element.move_to(channel)
-
-
-@bot.command()
-async def left(ctx):  # функция для выхода из voice канала
+    channel = await guild.create_voice_channel('Мафиозники')
+    # подключение бота к каналу
+    global voice
     c = ctx.message.author.voice.channel
     voice = get(bot.voice_clients, guild=ctx.guild)
+
     if voice and voice.is_connected():
-        await voice.disconnect()
+        await voice.move_to(channel)
+    else:
+        voice = await channel.connect()
+
+    await voice.disconnect()
+
+    if voice and voice.is_connected():
+        await voice.move_to(channel)
+    else:
+        voice = await channel.connect()
+    # перемещение юзеров
+    for element in players:
+        await element.move_to(channel)
+# мут   await element.edit(mute=True)
+    await mafiap()  # выдача ролей
 
 
-@bot.command()
-async def mafiap(ctx):  # рабочая отправляет в лс кто ты есть на самом деле
+# @bot.command()
+# async def left(ctx):  # функция для выхода из voice канала
+#     c = ctx.message.author.voice.channel
+#     voice = get(bot.voice_clients, guild=ctx.guild)
+#     if voice and voice.is_connected():
+#         await voice.disconnect()
+
+
+async def mafiap():  # рабочая отправляет в лс кто ты есть на самом деле
     f = 0
     maf = []
-    m_count = len(players) / 3.5
+    m_count = len(players) / 2
     round(m_count)
     while f < m_count:
         jke = random.randint(0, len(players) - 1)
-        # maf.append(random.randint(0, len(players)))
         if jke in maf:
             f -= 1
         else:
@@ -121,11 +102,10 @@ async def mafiap(ctx):  # рабочая отправляет в лс кто т�
             user = bot.get_user(players[i].id)
             await user.send('ты мафия ')
             if j < len(maf):
-                j+=1
+                j += 1
         else:
             user = bot.get_user(players[i].id)
             await user.send('ты мирный ')
-
 
 
 bot.run(TOKEN)  # запуск бота//
