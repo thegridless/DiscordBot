@@ -49,6 +49,7 @@ async def rules(ctx):
 # берем из списка в зависимости от количества m_count челов и отдаем им роль мафии а остальным даем мирных
 @bot.command()  # начало игры
 async def start(ctx):
+    # не забыть раскоментить
     guild = ctx.message.guild
     channel = await guild.create_voice_channel('Мафиозники')
     global channel_text
@@ -73,7 +74,7 @@ async def start(ctx):
     for element in players:
         await element.move_to(channel)
     # мут   await element.edit(mute=True)
-    await mafiap()  # выдача ролей
+    await roles()  # выдача ролей
     await t_rand()
 
 
@@ -85,7 +86,8 @@ async def start(ctx):
 # #         await voice.disconnect()
 
 
-async def mafiap():  # рабочая отправляет в лс кто ты есть на самом деле
+async def roles():  # рабочая отправляет в лс кто ты есть на самом деле
+    global acab_random
     f = 0
     maf = []
     m_count = len(players) / 2
@@ -98,33 +100,37 @@ async def mafiap():  # рабочая отправляет в лс кто ты �
             maf.append(jke)
         f += 1
     maf.sort()
-    i = 0
+
+    don_random = random.choice(maf)
+    user1 = bot.get_user(players[don_random].id)
+    await user1.send('Ваша роль - Дон.')
+    # выдача роли полицая
+    for i in range(len(players)):
+        acab_random = random.randint(0, len(players) - 1)
+        if acab_random not in maf:
+            user2 = bot.get_user(players[acab_random].id)
+            await user2.send('Ваша роль - Комиссар.')
+            break
+        else:
+            acab_random = random.randint(0, len(players) - 1)
+
     j = 0
     for i in range(len(players)):
         if i == maf[j]:
-            user = bot.get_user(players[i].id)
-            await user.send('ты мафия')
-            if j < len(maf):
-                j += 1
+            if i == don_random:
+                continue
+            else:
+                user = bot.get_user(players[i].id)
+                await user.send('Ваша роль - Мафия.')
+                if j < len(maf) - 1:
+                    j += 1
         else:
-            user = bot.get_user(players[i].id)
-            await user.send('ты мирный ')
-
-    den = []
-    for i in range(len(players)):
-        if i == maf:
-            den.append(players[i])
-            don_randon = random.randint(0, len(den) - 1)
-            user1 = bot.get_user(den[don_randon].id)
-            await user1.send('ты еще и дон(гандон)')
-
-    acab = []
-    for i in range(len(players)):
-        if i != maf:
-            acab.append(players[i])
-            acab_rand = random.randint(0, len(acab) - 1)
-            user2 = bot.get_user(acab[acab_rand].id)
-            await user2.send('а ты полицейский брат')
+            if i == acab_random:
+                continue
+            else:
+                user = bot.get_user(players[i].id)
+                await user.send('Ваша роль - Мирный житель.')
+    # выдача роли дона
 
 
 async def t_rand():
@@ -138,7 +144,7 @@ async def t_rand():
     d_list.sort()
     for i in d_list:
         await channel_text.send(str(i) + " - " + str(d[i].mention))
-    print(d)
+    # print(d)
 
 
 bot.run(TOKEN)  # запуск бота//
