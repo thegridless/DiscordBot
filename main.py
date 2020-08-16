@@ -1,5 +1,4 @@
 # Discord Bot # MAFIA
-import typing
 import discord
 import random
 from discord.ext import commands  # подгрузка библиотек
@@ -88,6 +87,8 @@ async def start(ctx):
 
 async def roles():  # рабочая отправляет в лс кто ты есть на самом деле
     global acab_random
+    global doctor_random
+    global don_random
     f = 0
     maf = []
     m_count = len(players) / 2
@@ -122,8 +123,6 @@ async def roles():  # рабочая отправляет в лс кто ты е
         else:
             doctor_random = random.randint(0, len(players) - 1)
 
-
-
     j = 0
     for i in range(len(players)):
         if i == maf[j]:
@@ -135,7 +134,7 @@ async def roles():  # рабочая отправляет в лс кто ты е
                 if j < len(maf) - 1:
                     j += 1
         else:
-            if i == acab_random or i==doctor_random:
+            if i == acab_random or i == doctor_random:
                 continue
             else:
                 user = bot.get_user(players[i].id)
