@@ -135,7 +135,7 @@ async def roles():  # рабочая отправляет в лс кто ты е
                 if j < len(maf) - 1:
                     j += 1
         else:
-            if i == acab_random:
+            if i == acab_random or i==doctor_random:
                 continue
             else:
                 user = bot.get_user(players[i].id)
