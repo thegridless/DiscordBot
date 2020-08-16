@@ -51,9 +51,11 @@ async def rules(ctx):
 async def start(ctx):
     guild = ctx.message.guild
     channel = await guild.create_voice_channel('Мафиозники')
+    global channel_text
+    channel_text = await guild.create_text_channel('Мафиозники')
     # подключение бота к каналу
     global voice
-    c = ctx.message.author.voice.channel
+
     voice = get(bot.voice_clients, guild=ctx.guild)
 
     if voice and voice.is_connected():
@@ -70,16 +72,17 @@ async def start(ctx):
     # перемещение юзеров
     for element in players:
         await element.move_to(channel)
-# мут   await element.edit(mute=True)
+    # мут   await element.edit(mute=True)
     await mafiap()  # выдача ролей
+    await t_rand()
 
 
 # @bot.command()
 # async def left(ctx):  # функция для выхода из voice канала
 #     c = ctx.message.author.voice.channel
-#     voice = get(bot.voice_clients, guild=ctx.guild)
-#     if voice and voice.is_connected():
-#         await voice.disconnect()
+# #     voice = get(bot.voice_clients, guild=ctx.guild)
+# #     if voice and voice.is_connected():
+# #         await voice.disconnect()
 
 
 async def mafiap():  # рабочая отправляет в лс кто ты есть на самом деле
@@ -106,6 +109,20 @@ async def mafiap():  # рабочая отправляет в лс кто ты �
         else:
             user = bot.get_user(players[i].id)
             await user.send('ты мирный ')
+
+
+async def t_rand():
+    d = {}
+    for i in players:
+        jke = random.randint(1, len(players))
+        while jke in d.keys():
+            jke = random.randint(1, len(players))
+        d.update({jke: i})
+    d_list = list(d.keys())
+    d_list.sort()
+    for i in d_list:
+        await channel_text.send(str(i) + " - " + str(d[i].mention))
+    print(d)
 
 
 bot.run(TOKEN)  # запуск бота//
