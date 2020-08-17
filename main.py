@@ -2,6 +2,7 @@
 import discord
 import random
 import asyncio
+import time
 from discord.ext import commands  # подгрузка библиотек
 from discord.utils import get
 
@@ -71,13 +72,13 @@ async def start(ctx):
     else:
         voice = await channel.connect()
     # перемещение юзеров
-    for element in players:
-        await element.move_to(channel)
+    # for element in players:
+    #     await element.move_to(channel)
         # await element.edit(mute=True)
 
     await t_rand()
     await roles()  # выдача ролей
-    await asyncio.sleep(10)
+    # await asyncio.sleep(10)
     await game(ctx)
 
 
@@ -176,12 +177,24 @@ async def t_rand():
 async def game(ctx):
     await channel_text.send("Игра началась!!!")
 
+    def check(m):
+        temp = m.content
+        if temp.isdigit() == False:
+            return False
+        if int(temp)<=len(players) and int(temp)>0 and m.author== d[i] and m.channel==channel_text:
+            return True
+        else:
+            return False
 
     for i in d_list:
         await channel_text.send("Игрок " + str(i) + " - " + str(d[i].mention) +". Ваша минута!\nЕсли вы хотите выставить игрока на голосование напишите его номер в данный чат.")
-        # msg = await bot.wait_for('message',check=check)
-        # print(msg)
-        await asyncio.sleep(60)
+        t_end = time.time() + 60
+        while time.time() < t_end:
+            msg = await bot.wait_for('message',check=check)
+            if check==False:
+                await channel_text.send("Напишите существующий номер!!!")
+            else:
+                await channel_text.send("Вы выставили игрока " + str(msg.content) + " на голосование!")
 
 
 bot.run(TOKEN)  # запуск бота//
