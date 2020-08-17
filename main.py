@@ -1,6 +1,7 @@
 # Discord Bot # MAFIA
 import discord
 import random
+import asyncio
 from discord.ext import commands  # подгрузка библиотек
 from discord.utils import get
 
@@ -76,6 +77,8 @@ async def start(ctx):
 
     await t_rand()
     await roles()  # выдача ролей
+    await asyncio.sleep(10)
+    await game()
 
 
 
@@ -145,6 +148,7 @@ async def roles():  # рабочая отправляет в лс кто ты е
 
 
 async def t_rand():
+    global d, d_list
     d = {}
     for i in players:
         jke = random.randint(1, len(players))
@@ -153,10 +157,24 @@ async def t_rand():
         d.update({jke: i})
     d_list = list(d.keys())
     d_list.sort()
-    for i in d_list:
-        await channel_text.send(str(i) + " - " + str(d[i].mention))
-    await channel_text.send("Игра начнётся через 30 секунд")
+    # for i in d_list:
+    #     await channel_text.send(str(i) + " - " + str(d[i].mention))
+    embed1 = discord.Embed(
+        title='Номера игроков',
+        description="Игра начнется через 30 секунд",
+        colour=discord.Colour.blue()
+    )
+    embed1.set_footer(text='Хорошей игры')
+    embed1.set_image(url='https://2ch.hk/b/arch/2020-07-07/src/224156532/15940650663840.png')
+    embed1.add_field(name='Номера:', value='\n'.join([str(i) + " - " + str(d[i].mention) for i in d_list]), inline=False)
+    await channel_text.send(embed=embed1)
     # print(d)
+
+async def game():
+    await channel_text.send("Игра началась!!!")
+    for i in d_list:
+        await channel_text.send("Игрок " + str(i) + " - " + str(d[i].mention) +". Ваша минута!!!")
+        await asyncio.sleep(60)
 
 
 bot.run(TOKEN)  # запуск бота//
