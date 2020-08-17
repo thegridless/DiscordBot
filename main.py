@@ -72,9 +72,12 @@ async def start(ctx):
     # перемещение юзеров
     for element in players:
         await element.move_to(channel)
-    # мут   await element.edit(mute=True)
-    await roles()  # выдача ролей
+        # await element.edit(mute=True)
+
     await t_rand()
+    await roles()  # выдача ролей
+
+
 
 
 # @bot.command()
@@ -91,7 +94,7 @@ async def roles():  # рабочая отправляет в лс кто ты е
     global don_random
     f = 0
     maf = []
-    m_count = len(players) / 2
+    m_count = len(players) / 3
     round(m_count)
     while f < m_count:
         jke = random.randint(0, len(players) - 1)
@@ -105,23 +108,22 @@ async def roles():  # рабочая отправляет в лс кто ты е
     don_random = random.choice(maf)
     user1 = bot.get_user(players[don_random].id)
     await user1.send('Ваша роль - Дон.')
-    # выдача роли полицая
-    for i in range(len(players)):
-        acab_random = random.randint(0, len(players) - 1)
-        if acab_random not in maf:
-            user2 = bot.get_user(players[acab_random].id)
-            await user2.send('Ваша роль - Комиссар.')
-            break
-        else:
-            acab_random = random.randint(0, len(players) - 1)
 
+    # выдача роли полицая
+    acab_random = random.randint(0, len(players) - 1)
+    while acab_random in maf:
+        acab_random = random.randint(0, len(players) - 1)
+
+    user2 = bot.get_user(players[acab_random].id)
+    await user2.send('Ваша роль - Комиссар.')
+
+    doctor_random = random.randint(0, len(players) - 1)
+    while doctor_random in maf or doctor_random==acab_random:
         doctor_random = random.randint(0, len(players) - 1)
-        if doctor_random not in maf and doctor_random != acab_random:
-            user3 = bot.get_user(players[doctor_random].id)
-            await user3.send('Ваша роль - Доктор.')
-            break
-        else:
-            doctor_random = random.randint(0, len(players) - 1)
+
+    user3 = bot.get_user(players[doctor_random].id)
+    await user3.send('Ваша роль - Доктор.')
+
 
     j = 0
     for i in range(len(players)):
@@ -153,6 +155,7 @@ async def t_rand():
     d_list.sort()
     for i in d_list:
         await channel_text.send(str(i) + " - " + str(d[i].mention))
+    await channel_text.send("Игра начнётся через 30 секунд")
     # print(d)
 
 
