@@ -78,7 +78,7 @@ async def start(ctx):
     await t_rand()
     await roles()  # выдача ролей
     await asyncio.sleep(10)
-    await game()
+    await game(ctx)
 
 
 
@@ -116,6 +116,7 @@ async def roles():  # рабочая отправляет в лс кто ты е
     acab_random = random.randint(0, len(players) - 1)
     while acab_random in maf:
         acab_random = random.randint(0, len(players) - 1)
+        break
 
     user2 = bot.get_user(players[acab_random].id)
     await user2.send('Ваша роль - Комиссар.')
@@ -123,6 +124,7 @@ async def roles():  # рабочая отправляет в лс кто ты е
     doctor_random = random.randint(0, len(players) - 1)
     while doctor_random in maf or doctor_random==acab_random:
         doctor_random = random.randint(0, len(players) - 1)
+        break
 
     user3 = bot.get_user(players[doctor_random].id)
     await user3.send('Ваша роль - Доктор.')
@@ -170,10 +172,15 @@ async def t_rand():
     await channel_text.send(embed=embed1)
     # print(d)
 
-async def game():
+
+async def game(ctx):
     await channel_text.send("Игра началась!!!")
+
+
     for i in d_list:
-        await channel_text.send("Игрок " + str(i) + " - " + str(d[i].mention) +". Ваша минута!!!")
+        await channel_text.send("Игрок " + str(i) + " - " + str(d[i].mention) +". Ваша минута!\nЕсли вы хотите выставить игрока на голосование напишите его номер в данный чат.")
+        # msg = await bot.wait_for('message',check=check)
+        # print(msg)
         await asyncio.sleep(60)
 
 
