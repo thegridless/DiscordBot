@@ -2,9 +2,13 @@
 import discord
 import random
 import asyncio
+from abc import ABC
 import time
 from discord.ext import commands  # подгрузка библиотек
 from discord.utils import get
+
+class MyABC(ABC):
+    pass
 
 TOKEN = 'NzQzMDc1MjE1MzEwODQ4MDAw.XzPYuQ.ksRcVxyBqRGXHWWZ6VemWNZCr5Q'  # токен бота
 
@@ -52,7 +56,8 @@ async def rules(ctx):
 async def start(ctx):
     # не забыть раскоментить
     guild = ctx.message.guild
-    channel = await guild.create_voice_channel('Мафиозники')
+    global channel_voice
+    channel_voice = await guild.create_voice_channel('Мафиозники')
     global channel_text
     channel_text = await guild.create_text_channel('Мафиозники')
     # подключение бота к каналу
@@ -61,16 +66,16 @@ async def start(ctx):
     voice = get(bot.voice_clients, guild=ctx.guild)
 
     if voice and voice.is_connected():
-        await voice.move_to(channel)
+        await voice.move_to(channel_voice)
     else:
-        voice = await channel.connect()
+        voice = await channel_voice.connect()
 
     await voice.disconnect()
 
     if voice and voice.is_connected():
-        await voice.move_to(channel)
+        await voice.move_to(channel_voice)
     else:
-        voice = await channel.connect()
+        voice = await channel_voice.connect()
     # перемещение юзеров
     # for element in players:
     #     await element.move_to(channel)
@@ -82,6 +87,11 @@ async def start(ctx):
     await game(ctx)
 
 
+@bot.command()
+async def stop(ctx):  # функция для удаления каналов
+    await asyncio.sleep(5)
+    await channel_voice.delete()
+    await channel_text.delete()
 
 
 # @bot.command()
