@@ -15,9 +15,19 @@ p_pl = []  # массив игроков, которых выставили на
 
 bot = commands.Bot(command_prefix='!')  # инициализация преффикса
 
+games = {}
+
+class Game:
+    def __init__(self):
+        self.players = []
+        self.mafia = []
+        self.p_pl = []
+
 
 @bot.command(pass_context=True)  # разрешаем передавать агрументы
 async def play(ctx):  # функция для !play
+    if ctx.guild.id not in games:
+        games[ctx.guild.id] = Game()
     guild = ctx.message.guild
     if ctx.author.voice == None:
         await ctx.send(ctx.author.mention + ", зайди в голосовой канал!!")
@@ -25,15 +35,15 @@ async def play(ctx):  # функция для !play
         if ctx.author in players:
             await ctx.send(str(ctx.author) + ", вы уже в игре")
         else:
-            players.append(ctx.author)
+            games[ctx.guild.id].players.append(ctx.author)
             embed = discord.Embed(
                 description=str(ctx.author.mention) + " присоединился к игре",
                 colour=discord.Colour.blue()
             )
             embed.set_footer(text='Хорошей игры')
             embed.set_image(url='https://2ch.hk/b/arch/2020-07-07/src/224156532/15940650663840.png')
-            embed.add_field(name="Количество участников: ", value=str(len(players)), inline=True)
-            embed.add_field(name='Список участников', value=','.join([str(elem.mention) for elem in players]), inline=False)
+            embed.add_field(name="Количество участников: ", value=str(len(games[ctx.guild.id].players)), inline=True)
+            embed.add_field(name='Список участников', value=','.join([str(elem.mention) for elem in games[ctx.guild.id].players]), inline=False)
             await ctx.send(embed=embed)
 
 
@@ -241,5 +251,10 @@ async def game(ctx):
 async def playSound(ctx, _source):
     voice.play(discord.FFmpegPCMAudio(executable="C:/ffmpeg/bin/ffmpeg.exe", source=_source))
 
+@bot.command()
+async def guild(ctx):
+    guild= []
+    guild=get(bot.guilds)
+    print(guild)
 
 bot.run(TOKEN)  # запуск бота//
