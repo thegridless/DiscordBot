@@ -4,6 +4,7 @@ import random
 import asyncio
 from abc import ABC
 import time
+from abc import ABC
 from discord.ext import commands  # подгрузка библиотек
 from discord.utils import get
 
@@ -14,6 +15,8 @@ TOKEN = 'NzQzMDc1MjE1MzEwODQ4MDAw.XzPYuQ.ksRcVxyBqRGXHWWZ6VemWNZCr5Q'  # ток�
 
 players = []  # массив игроков
 mafia = []
+p_pl = [] #массив игроков, которых выставили на голосование
+
 
 bot = commands.Bot(command_prefix='!')  # инициализация преффикса
 
@@ -187,24 +190,55 @@ async def t_rand():
 async def game(ctx):
     await channel_text.send("Игра началась!!!")
 
-    def check(m):
-        temp = m.content
-        if temp.isdigit() == False:
-            return False
-        if int(temp)<=len(players) and int(temp)>0 and m.author== d[i] and m.channel==channel_text:
-            return True
-        else:
-            return False
-
     for i in d_list:
+
+        choice = False
+
         await channel_text.send("Игрок " + str(i) + " - " + str(d[i].mention) +". Ваша минута!\nЕсли вы хотите выставить игрока на голосование напишите его номер в данный чат.")
-        t_end = time.time() + 60
+        t_end = time.time() + 10
         while time.time() < t_end:
-            msg = await bot.wait_for('message',check=check)
-            if check==False:
-                await channel_text.send("Напишите существующий номер!!!")
+            try:
+                msg = await bot.wait_for('message',timeout=10.0)
+            except asyncio.TimeoutError:
+                break
+
+            s = msg.content
+            if s.isdigit() == False:
+                await channel_text.send("Напишите существующий номер")
+            elif msg.author!=d[i]:
+                await channel_text.send("Сейчас не ваша минута")
+            elif int(s)<=len(players) and int(s)>0 and msg.channel==channel_text:
+                if(int(s) in p_pl):
+                    await channel_text.send("Этот игрок уже выставлен")
+                else:
+                    await channel_text.send("Вы выставили игрока " + str(msg.content) + " на голосование!")
+                    if choice==False:
+                        p_pl.append(int(s))
+                        choice=True
+                    else:
+                        p_pl.pop()
+                        p_pl.append(int(s))
+
             else:
-                await channel_text.send("Вы выставили игрока " + str(msg.content) + " на голосование!")
+                await channel_text.send("Напишите существующий номер")
+
+
+
+    embed_p = discord.Embed(
+        title="Выставленые игроки на голосование",
+        description="Голосование проходит в порядке выстовления игроков",
+        colour=discord.Colour.blue()
+    )
+    embed_p.set_footer(text='Хорошей игры')
+    # embed_p.set_image(url='https://2ch.hk/b/arch/2020-07-07/src/224156532/15940650663840.png')
+    embed_p.add_field(name='Номера:', value='\n'.join([str(i) + " - " + str(d[i].mention) for i in p_pl]),
+                     inline=False)
+    await channel_text.send(embed=embed_p)
+
+
+
+
+
 
 
 bot.run(TOKEN)  # запуск бота//
