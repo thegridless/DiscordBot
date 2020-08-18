@@ -13,6 +13,7 @@ players = []  # массив игроков
 mafia = []
 p_pl = []  # массив игроков, которых выставили на голосование
 
+
 bot = commands.Bot(command_prefix='!')  # инициализация преффикса
 
 games = {}
@@ -256,5 +257,53 @@ async def guild(ctx):
     guild= []
     guild=get(bot.guilds)
     print(guild)
+
+
+async def golosovanie(ctx):
+    g_list = []
+    p_pl1 = {}
+    for i in p_pl:
+        await channel_text.send("Игрок " + str(i) + " - " + str(p_pl[
+                                                                    i].mention) + ". Ваша минута!\n Попробуй оправдаться, мудазвон")
+        await asyncio.sleep(5)
+
+    global g_list, msg, pg_users, ma
+
+    for i in p_pl:
+        channel_text.send(
+            'Голосуем за игрока ' + str(p_pl[i].mention) + ", если считаете, что он мафия, напишите плюсик")
+        t_end = time.time() + 10
+        while time.time() < t_end:
+            try:
+                msg = await bot.wait_for('message', timeout=10.0)
+            except asyncio.TimeoutError:
+                break
+
+            s = msg.content
+            ma = str(ctx.messageAuthor)
+            if s != '+':
+                await channel_text.send(s.messageAuthor.mention + " Напишите плюсик")
+            elif ma not in g_list:
+                g_list.append(ma)
+            else:
+                continue
+
+        channel_text.send(
+            'За исключение игрока ' + str(p_pl[i].mention) +
+            'проголосвало ' + str(len(g_list)) + 'человека')
+
+
+        p_pl1.update({len(g_list): i })
+
+
+
+    p = list(p_pl1.keys())
+    p.sort()
+    key = p.pop()
+    yo = p_pl1.get(key)
+    channel_text.send('Игрок '+p_pl[yo].mention+' покидает игру')
+
+
+
 
 bot.run(TOKEN)  # запуск бота//
