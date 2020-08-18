@@ -260,8 +260,8 @@ async def guild(ctx):
 
 
 async def golosovanie(ctx):
-    g_list = []
-    p_pl1 = {}
+    g_list = [] #список игроков которые отправили сообщение
+    p_pl1 = {} #словарь номинированных с количеством голосов
     for i in range(len(p_pl)):
         await channel_text.send("Игрок " + str(i) + " - " + str(p_pl[
                                                                     i].mention) + ". Ваша минута!\n Попробуй оправдаться, мудазвон")
@@ -279,6 +279,7 @@ async def golosovanie(ctx):
             except asyncio.TimeoutError:
                 break
 
+            #я хз так ли это работает
             s = msg.content
             ma = str(ctx.messageAuthor)
             if s != '+':
@@ -299,7 +300,7 @@ async def golosovanie(ctx):
 
 
 
-
+#берем ключи сортируем и по наибольшему ключу вычисляем кикнутого
     p = list(p_pl1.keys())
     p.sort()
     key = p.pop()
