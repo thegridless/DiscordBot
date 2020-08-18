@@ -3,9 +3,10 @@ import discord
 import random
 import asyncio
 import time
-import ffmpeg
+#import ffmpeg
 from discord.ext import commands  # подгрузка библиотек
 from discord.utils import get
+from discord import ChannelType
 
 TOKEN = 'NzQzMDc1MjE1MzEwODQ4MDAw.XzPYuQ.ksRcVxyBqRGXHWWZ6VemWNZCr5Q'  # токен бота
 
@@ -18,6 +19,17 @@ bot = commands.Bot(command_prefix='!')  # инициализация префф�
 
 @bot.command(pass_context=True)  # разрешаем передавать агрументы
 async def play(ctx):  # функция для !play
+    guild = ctx.message.guild
+    voice_c = []
+    for i in guild.voice_channels:
+        voice_c.append(i.name)
+
+    try:
+        voice_c = ctx.author.voice.channel
+    except :
+        ctx.send(str(ctx.author.mention) + ', войдите пожалуйста в voice-chat')
+
+
     if ctx.author in players:
         await ctx.send(str(ctx.author) + ", вы уже в игре")
     else:
@@ -42,6 +54,8 @@ async def leave(ctx):
         await ctx.send(str(ctx.author.mention) + ", вы покинули следующую игру")
     else:
         await ctx.send(str(ctx.author.mention) + ", вы не участвуете в следующей игре")
+
+
 
 
 @bot.command()  # правила игры
@@ -236,6 +250,12 @@ async def game(ctx):
 
 async def playSound(ctx, _source):
     voice.play(discord.FFmpegPCMAudio(executable="C:/ffmpeg/bin/ffmpeg.exe", source=_source))
+
+
+
+
+
+
 
 
 bot.run(TOKEN)  # запуск бота//
