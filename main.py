@@ -2,21 +2,16 @@
 import discord
 import random
 import asyncio
-from abc import ABC
 import time
-from abc import ABC
+import ffmpeg
 from discord.ext import commands  # подгрузка библиотек
 from discord.utils import get
-
-class MyABC(ABC):
-    pass
 
 TOKEN = 'NzQzMDc1MjE1MzEwODQ4MDAw.XzPYuQ.ksRcVxyBqRGXHWWZ6VemWNZCr5Q'  # токен бота
 
 players = []  # массив игроков
 mafia = []
-p_pl = [] #массив игроков, которых выставили на голосование
-
+p_pl = []  # массив игроков, которых выставили на голосование
 
 bot = commands.Bot(command_prefix='!')  # инициализация преффикса
 
@@ -80,19 +75,23 @@ async def start(ctx):
     else:
         voice = await channel_voice.connect()
     # перемещение юзеров
-    # for element in players:
-    #     await element.move_to(channel)
+    for element in players:
+        await element.move_to(channel_voice)
         # await element.edit(mute=True)
 
     await t_rand()
     await roles()  # выдача ролей
     # await asyncio.sleep(10)
-    await game(ctx)
+    #РАСКОМЕНТИТЬ
+    # await game(ctx)
+
+    await asyncio.sleep(5)
+    await playSound(ctx, _source="C:/sounds/пушка.mp3")
 
 
 @bot.command()
 async def stop(ctx):  # функция для удаления каналов
-    await asyncio.sleep(5)
+    # await asyncio.sleep(5)
     await channel_voice.delete()
     await channel_text.delete()
 
@@ -136,13 +135,12 @@ async def roles():  # рабочая отправляет в лс кто ты е
     await user2.send('Ваша роль - Комиссар.')
 
     doctor_random = random.randint(0, len(players) - 1)
-    while doctor_random in maf or doctor_random==acab_random:
+    while doctor_random in maf or doctor_random == acab_random:
         doctor_random = random.randint(0, len(players) - 1)
         break
 
     user3 = bot.get_user(players[doctor_random].id)
     await user3.send('Ваша роль - Доктор.')
-
 
     j = 0
     for i in range(len(players)):
@@ -182,7 +180,8 @@ async def t_rand():
     )
     embed1.set_footer(text='Хорошей игры')
     embed1.set_image(url='https://2ch.hk/b/arch/2020-07-07/src/224156532/15940650663840.png')
-    embed1.add_field(name='Номера:', value='\n'.join([str(i) + " - " + str(d[i].mention) for i in d_list]), inline=False)
+    embed1.add_field(name='Номера:', value='\n'.join([str(i) + " - " + str(d[i].mention) for i in d_list]),
+                     inline=False)
     await channel_text.send(embed=embed1)
     # print(d)
 
@@ -194,35 +193,34 @@ async def game(ctx):
 
         choice = False
 
-        await channel_text.send("Игрок " + str(i) + " - " + str(d[i].mention) +". Ваша минута!\nЕсли вы хотите выставить игрока на голосование напишите его номер в данный чат.")
+        await channel_text.send("Игрок " + str(i) + " - " + str(d[
+                                                                    i].mention) + ". Ваша минута!\nЕсли вы хотите выставить игрока на голосование напишите его номер в данный чат.")
         t_end = time.time() + 10
         while time.time() < t_end:
             try:
-                msg = await bot.wait_for('message',timeout=10.0)
+                msg = await bot.wait_for('message', timeout=10.0)
             except asyncio.TimeoutError:
                 break
 
             s = msg.content
             if s.isdigit() == False:
                 await channel_text.send("Напишите существующий номер")
-            elif msg.author!=d[i]:
+            elif msg.author != d[i]:
                 await channel_text.send("Сейчас не ваша минута")
-            elif int(s)<=len(players) and int(s)>0 and msg.channel==channel_text:
-                if(int(s) in p_pl):
+            elif int(s) <= len(players) and int(s) > 0 and msg.channel == channel_text:
+                if (int(s) in p_pl):
                     await channel_text.send("Этот игрок уже выставлен")
                 else:
                     await channel_text.send("Вы выставили игрока " + str(msg.content) + " на голосование!")
-                    if choice==False:
+                    if choice == False:
                         p_pl.append(int(s))
-                        choice=True
+                        choice = True
                     else:
                         p_pl.pop()
                         p_pl.append(int(s))
 
             else:
                 await channel_text.send("Напишите существующий номер")
-
-
 
     embed_p = discord.Embed(
         title="Выставленые игроки на голосование",
@@ -232,13 +230,12 @@ async def game(ctx):
     embed_p.set_footer(text='Хорошей игры')
     # embed_p.set_image(url='https://2ch.hk/b/arch/2020-07-07/src/224156532/15940650663840.png')
     embed_p.add_field(name='Номера:', value='\n'.join([str(i) + " - " + str(d[i].mention) for i in p_pl]),
-                     inline=False)
+                      inline=False)
     await channel_text.send(embed=embed_p)
 
 
-
-
-
+async def playSound(ctx, _source):
+    voice.play(discord.FFmpegPCMAudio(executable="C:/ffmpeg/bin/ffmpeg.exe", source=_source))
 
 
 bot.run(TOKEN)  # запуск бота//
