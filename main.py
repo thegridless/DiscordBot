@@ -262,14 +262,14 @@ async def guild(ctx):
 async def golosovanie(ctx):
     g_list = []
     p_pl1 = {}
-    for i in p_pl:
+    for i in range(len(p_pl)):
         await channel_text.send("Игрок " + str(i) + " - " + str(p_pl[
                                                                     i].mention) + ". Ваша минута!\n Попробуй оправдаться, мудазвон")
         await asyncio.sleep(5)
 
     global g_list, msg, pg_users, ma
 
-    for i in p_pl:
+    for i in range(len(p_pl)):
         channel_text.send(
             'Голосуем за игрока ' + str(p_pl[i].mention) + ", если считаете, что он мафия, напишите плюсик")
         t_end = time.time() + 10
@@ -293,7 +293,10 @@ async def golosovanie(ctx):
             'проголосвало ' + str(len(g_list)) + 'человека')
 
 
-        p_pl1.update({len(g_list): i })
+        p_pl1.update({len(g_list): p_pl[i]})
+
+
+
 
 
 
@@ -301,7 +304,8 @@ async def golosovanie(ctx):
     p.sort()
     key = p.pop()
     yo = p_pl1.get(key)
-    channel_text.send('Игрок '+p_pl[yo].mention+' покидает игру')
+    channel_text.send('Игрок '+yo.mention+' покидает игру')
+
 
 
 
