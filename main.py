@@ -12,6 +12,8 @@ TOKEN = 'NzQzMDc1MjE1MzEwODQ4MDAw.XzPYuQ.ksRcVxyBqRGXHWWZ6VemWNZCr5Q'  # ток�
 players = []  # массив игроков
 mafia = []
 p_pl = []  # массив игроков, которых выставили на голосование
+sounds = [10] # массив звуков
+sounds[0]="sounds/пушка.mp3" # пути к звукам
 
 
 bot = commands.Bot(command_prefix='!')  # инициализация преффикса
@@ -101,7 +103,7 @@ async def start(ctx):
     # await game(ctx)
 
     await asyncio.sleep(5)
-    await playSound(ctx, _source="C:/sounds/пушка.mp3")
+    await playSound(ctx, _source=sounds[0])
 
 
 @bot.command()
@@ -124,6 +126,7 @@ async def roles():  # рабочая отправляет в лс кто ты е
     global doctor_random
     global don_random
     f = 0
+    global maf
     maf = []
     m_count = len(players) / 3
     round(m_count)
@@ -248,18 +251,18 @@ async def game(ctx):
                       inline=False)
     await channel_text.send(embed=embed_p)
 
-
+# функция воспроизведения звуков
 async def playSound(ctx, _source):
     voice.play(discord.FFmpegPCMAudio(executable="C:/ffmpeg/bin/ffmpeg.exe", source=_source))
 
+# проверочная команда для воспроизведения
 @bot.command()
-async def guild(ctx):
-    guild= []
-    guild=get(bot.guilds)
-    print(guild)
+async def ps(ctx):
+    voice.play(discord.FFmpegPCMAudio(executable="C:/ffmpeg/bin/ffmpeg.exe", source=sounds[0]))
 
 
 async def golosovanie(ctx):
+    global g_list
     g_list = [] #список игроков которые отправили сообщение
     p_pl1 = {} #словарь номинированных с количеством голосов
     for i in range(len(p_pl)):
@@ -267,7 +270,7 @@ async def golosovanie(ctx):
                                                                     i].mention) + ". Ваша минута!\n Попробуй оправдаться, мудазвон")
         await asyncio.sleep(5)
 
-    global g_list, msg, pg_users, ma
+    global msg, pg_users, ma
 
     for i in range(len(p_pl)):
         channel_text.send(
@@ -307,7 +310,38 @@ async def golosovanie(ctx):
     yo = p_pl1.get(key)
     channel_text.send('Игрок '+yo.mention+' покидает игру')
 
+async def check(ctx,number):
+    user = bot.get_user(players[number].id)
+    await user.send('Отправьте номер для проверки, у вас есть 10 секунд')
 
+    t_end = time.time() + 10
+    while time.time() < t_end:
+        try:
+            msg = await bot.wait_for('message', timeout=10.0)
+        except asyncio.TimeoutError:
+            break
+
+        s = msg.content
+
+    if not s.isdigit():
+        await channel_text.send("Напишите существующий номер")
+
+    if number == don_random:
+        if s == acab_random:
+            await user.send("Роль игрока под номером" + s + "- Коммисар.")
+        elif s == doctor_random:
+            await user.send("Роль игрока под номером" + s + "- Доктор.")
+        else:
+            await user.send("Роль игрока под номером" + s + "- Мирный житель.")
+
+    if number == acab_random:
+        if s in maf:
+            await user.send("Роль игрока под номером" + s + "- Мафия.")
+        elif s == don_random:
+            await user.send("Роль игрока под номером" + s + "- Дон.")
+        else:
+            await user.send("Роль игрока под номером" + s + "- Не мафия.")
+    # если че тут маньяка добавить ещё
 
 
 
