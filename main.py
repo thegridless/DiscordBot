@@ -86,12 +86,13 @@ async def start(ctx):
     else:
         voice = await channel_voice.connect()
 
-    await voice.disconnect()
 
-    if voice and voice.is_connected():
-        await voice.move_to(channel_voice)
-    else:
-        voice = await channel_voice.connect()
+
+    # if voice and voice.is_connected():
+    #     await voice.move_to(channel_voice)
+    # else:
+    #     voice = await channel_voice.connect()
+
     # перемещение юзеров
     for element in games[ctx.guild.id].players:
         await element.move_to(channel_voice)
@@ -102,9 +103,9 @@ async def start(ctx):
     # await asyncio.sleep(10)
     #РАСКОМЕНТИТЬ
     await game(ctx)
-
+    await golosovanie(ctx)
     await asyncio.sleep(5)
-    await playSound(ctx, _source=sounds[0])
+    #await playSound(ctx, _source=sounds[0])
 
 
 @bot.command()
@@ -266,36 +267,48 @@ async def golosovanie(ctx):
     global g_list
     g_list = [] #список игроков которые отправили сообщение
     p_pl1 = {} #словарь номинированных с количеством голосов
+    print(games[ctx.guild.id].p_pl)
+
     for i in range(len(games[ctx.guild.id].p_pl)):
-        await channel_text.send("Игрок " + str(i) + " - " + str(games[ctx.guild.id].p_pl[
-                                                                    i].mention) + ". Ваша минута!\n Попробуй оправдаться, мудазвон")
+        await channel_text.send("Игрок " + str(games[ctx.guild.id].p_pl[i]) + " - " + games[ctx.guild.id].players[games[ctx.guild.id].p_pl[i]-1].mention + ". Ваша минута!\n Попробуй оправдаться, мудазвон")
         await asyncio.sleep(5)
 
     global msg, pg_users, ma
 
     for i in range(len(games[ctx.guild.id].p_pl)):
-        channel_text.send(
-            'Голосуем за игрока ' + str(games[ctx.guild.id].p_pl[i].mention) + ", если считаете, что он мафия, напишите плюсик")
+        await channel_text.send('Голосуем за игрока '+ str(games[ctx.guild.id].p_pl[i]) + " - " + games[ctx.guild.id].players[games[ctx.guild.id].p_pl[i]-1].mention + ", если считаете, что он мафия, напишите плюсик")
         t_end = time.time() + 10
         while time.time() < t_end:
             try:
                 msg = await bot.wait_for('message', timeout=10.0)
+                s = msg.content
+                ma = ctx.message.author
+                print(ma)
+
+                if s != '+':
+                    await channel_text.send(ma.mention + " Напишите плюсик")
+                elif ma not in g_list:
+                    g_list.append(ma)
+                else:
+                    continue
             except asyncio.TimeoutError:
                 break
 
-            #я хз так ли это работает
-            s = msg.content
-            ma = str(ctx.messageAuthor)
-            if s != '+':
-                await channel_text.send(s.messageAuthor.mention + " Напишите плюсик")
-            elif ma not in g_list:
-                g_list.append(ma)
-            else:
-                continue
+            # #я хз так ли это работает
+            # s = msg.content
+            # ma = ctx.message.author
+            # print (ma)
+            #
+            # if s != '+':
+            #     await channel_text.send(ma.mention + " Напишите плюсик")
+            # elif ma not in g_list:
+            #     g_list.append(ma)
+            # else:
+            #     continue
 
-        channel_text.send(
-            'За исключение игрока ' + str(games[ctx.guild.id].p_pl[i].mention) +
-            'проголосвало ' + str(len(g_list)) + 'человека')
+        await channel_text.send('За исключение игрока '+ str(games[ctx.guild.id].p_pl[i]) + " - " + games[ctx.guild.id].players[games[ctx.guild.id].p_pl[i]-1].mention + 'проголосвало ' + str(len(g_list)) + ' человек(а)')
+
+
 
 
         p_pl1.update({len(g_list): games[ctx.guild.id].p_pl[i]})
@@ -303,13 +316,13 @@ async def golosovanie(ctx):
 
 
 
-
-#берем ключи сортируем и по наибольшему ключу вычисляем кикнутого
-    p = list(p_pl1.keys())
-    p.sort()
-    key = p.pop()
-    yo = p_pl1.get(key)
-    channel_text.send('Игрок '+yo.mention+' покидает игру')
+#
+# #берем ключи сортируем и по наибольшему ключу вычисляем кикнутого
+#     p = list(p_pl1.keys())
+#     p.sort()
+#     key = p.pop()
+#     yo = p_pl1.get(key)
+#     channel_text.send('Игрок '+yo.mention+' покидает игру')
 
 async def check(ctx,number):
     user = bot.get_user(games[ctx.guild.id].players[number].id)
