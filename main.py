@@ -30,7 +30,13 @@ class Game:
         self.d_list = {}  # отсортированный массив с номерами игроков
         self.p_pl1 = {}  # словарь хранится {кол-во голосов : номер игрока}
         self.g_list = []  # массив с проголосовавшими игроками
-
+        self.end_of_game = False
+        self.embed = 0
+        self.embed1 = 0
+        self.embed_p = 0
+        self.acab_random = 0
+        self.don_random = 0
+        self.sherif = 0
 
 @bot.command(pass_context=True)  # разрешаем передавать агрументы
 async def play(ctx):  # функция для !play
@@ -41,19 +47,19 @@ async def play(ctx):  # функция для !play
         await ctx.send(ctx.author.mention + ", зайди в голосовой канал!!")
     else:
         if ctx.author in games[ctx.guild.id].players:
-            await ctx.send(str(ctx.author) + ", вы уже в игре")
+            await ctx.send(str(ctx.author.mention) + ", вы уже в игре")
         else:
             games[ctx.guild.id].players.append(ctx.author)
-            embed = discord.Embed(
+            games[ctx.guild.id].embed = discord.Embed(
                 description=str(ctx.author.mention) + " присоединился к игре",
                 colour=discord.Colour.blue()
             )
-            embed.set_footer(text='Хорошей игры')
-            embed.set_image(url='https://2ch.hk/b/arch/2020-07-07/src/224156532/15940650663840.png')
-            embed.add_field(name="Количество участников: ", value=str(len(games[ctx.guild.id].players)), inline=True)
-            embed.add_field(name='Список участников',
+            games[ctx.guild.id].embed.set_footer(text='Хорошей игры')
+            games[ctx.guild.id].embed.set_image(url='https://2ch.hk/b/arch/2020-07-07/src/224156532/15940650663840.png')
+            games[ctx.guild.id].embed.add_field(name="Количество участников: ", value=str(len(games[ctx.guild.id].players)), inline=True)
+            games[ctx.guild.id].embed.add_field(name='Список участников',
                             value=','.join([str(elem.mention) for elem in games[ctx.guild.id].players]), inline=False)
-            await ctx.send(embed=embed)
+            await ctx.send(embed=games[ctx.guild.id].embed)
 
     g = ctx.message.guild.id
 
@@ -61,7 +67,7 @@ async def play(ctx):  # функция для !play
 # функция для того чтобы покинуть игру
 @bot.command()
 async def leave(ctx):
-    # условие для проверки учатсвует ли игрок в некст игре
+    # условие для проверки участвует ли игрок в некст игре
     if ctx.author in [ctx.guild.id].players:
         [ctx.guild.id].players.remove(ctx.author)
         await ctx.send(str(ctx.author.mention) + ", вы покинули следующую игру")
@@ -105,10 +111,10 @@ async def start(ctx):
 
     await t_rand(ctx) #создается словарь d
     await roles(ctx)  # выдача ролей
-    # await asyncio.sleep(10)
     # РАСКОМЕНТИТЬ
     await game(ctx)
-    await golosovanie(ctx)
+    if len(games[ctx.guild.id].p_pl)!=0:
+        await golosovanie(ctx)
     # await playSound(ctx, _source=sounds[0])
 
 
@@ -128,9 +134,7 @@ async def stop(ctx):  # функция для удаления каналов
 
 
 async def roles(ctx):  # рабочая отправляет в лс кто ты есть на самом деле
-    global acab_random
-    global doctor_random
-    global don_random
+
     f = 0
     m_count = len(games[ctx.guild.id].players) / 3
     round(m_count)
@@ -144,20 +148,20 @@ async def roles(ctx):  # рабочая отправляет в лс кто ты
         f += 1
     # maf.sort()
 
-    print(games[ctx.guild.id].maf)
-    don_random = random.choice(games[ctx.guild.id].maf)
+    games[ctx.guild.id].don_random = random.choice(games[ctx.guild.id].maf)
     # user1 = bot.get_user(games[ctx.guild.id].players[don_random].id)
-    await don_random.send('Ваша роль - Дон.')
+    await games[ctx.guild.id].don_random.send('Ваша роль - Дон.')
 
     # выдача роли полицая
-    acab_random = random.randint(0, len(games[ctx.guild.id].players) - 1)
-    sherif = bot.get_user(games[ctx.guild.id].players[acab_random].id)
-    while sherif in games[ctx.guild.id].maf:
-        acab_random = random.randint(0, len(games[ctx.guild.id].players) - 1)
-        sherif = bot.get_user(games[ctx.guild.id].players[acab_random].id)
+    games[ctx.guild.id].acab_random = random.randint(0, len(games[ctx.guild.id].players) - 1)
+    games[ctx.guild.id].sherif = bot.get_user(games[ctx.guild.id].players[games[ctx.guild.id].acab_random].id)
+    while games[ctx.guild.id].sherif in games[ctx.guild.id].maf:
+        games[ctx.guild.id].acab_random = random.randint(0, len(games[ctx.guild.id].players) - 1)
+        games[ctx.guild.id].sherif = bot.get_user(games[ctx.guild.id].players[games[ctx.guild.id].acab_random].id)
+        break
 
     # user2 = bot.get_user(games[ctx.guild.id].players[acab_random].id)
-    await sherif.send('Ваша роль - Комиссар.')
+    await games[ctx.guild.id].sherif.send('Ваша роль - Комиссар.')
 
     # doctor_random = random.randint(0, len(games[ctx.guild.id].players) - 1)
     # while doctor_random in maf or doctor_random == acab_random:
@@ -170,7 +174,7 @@ async def roles(ctx):  # рабочая отправляет в лс кто ты
     j = 0
     for i in games[ctx.guild.id].players:
         if i == games[ctx.guild.id].maf[j]:
-            if i == don_random:
+            if i == games[ctx.guild.id].don_random:
                 continue
             else:
                 # user = bot.get_user(games[ctx.guild.id].players[i].id)
@@ -178,7 +182,7 @@ async def roles(ctx):  # рабочая отправляет в лс кто ты
                 if j < len(games[ctx.guild.id].maf) - 1:
                     j += 1
         else:
-            if i == sherif: # or i == doctor_random:
+            if i == games[ctx.guild.id].sherif: # or i == doctor_random:
                 continue
             else:
                 # user = bot.get_user(games[ctx.guild.id].players[i].id)
@@ -196,17 +200,17 @@ async def t_rand(ctx):
     games[ctx.guild.id].d_list.sort()
     # for i in d_list:
     #     await channel_text.send(str(i) + " - " + str(d[i].mention))
-    embed1 = discord.Embed(
+    games[ctx.guild.id].embed1 = discord.Embed(
         title='Номера игроков',
         description="Игра начнется через 30 секунд",
         colour=discord.Colour.blue()
     )
-    embed1.set_footer(text='Хорошей игры')
-    embed1.set_image(url = 'https://2ch.hk/b/arch/2020-07-07/src/224156532/15940650663840.png')
-    embed1.add_field(name = 'Номера:', value = '\n'.join(
+    games[ctx.guild.id].embed1.set_footer(text='Хорошей игры')
+    games[ctx.guild.id].embed1.set_image(url = 'https://2ch.hk/b/arch/2020-07-07/src/224156532/15940650663840.png')
+    games[ctx.guild.id].embed1.add_field(name = 'Номера:', value = '\n'.join(
         [str(i) + " - " + str(games[ctx.guild.id].d[i].mention) for i in games[ctx.guild.id].d_list]),
                      inline=False)
-    await channel_text.send(embed=embed1)
+    await channel_text.send(embed=games[ctx.guild.id].embed1)
     # print(d)
 
 
@@ -246,17 +250,25 @@ async def game(ctx):
             else:
                 await channel_text.send("Напишите существующий номер")
 
-    embed_p = discord.Embed(
-        title="Выставленые игроки на голосование",
-        description="Голосование проходит в порядке выстовления игроков",
-        colour=discord.Colour.blue()
-    )
-    embed_p.set_footer(text='Хорошей игры')
-    # embed_p.set_image(url='https://2ch.hk/b/arch/2020-07-07/src/224156532/15940650663840.png')
-    embed_p.add_field(name='Номера:', value='\n'.join(
-        [str(i) + " - " + str(games[ctx.guild.id].d[i].mention) for i in games[ctx.guild.id].p_pl]),
-                      inline=False)
-    await channel_text.send(embed=embed_p)
+    if len(games[ctx.guild.id].p_pl)==0:
+        games[ctx.guild.id].embed_p = discord.Embed(
+            title="На голосование не было выставлено ни одного игрока",
+            colour=discord.Colour.blue()
+        )
+        games[ctx.guild.id].embed_p.set_footer(text='Хорошей игры')
+        await channel_text.send(embed=games[ctx.guild.id].embed_p)
+    else:
+        games[ctx.guild.id].embed_p = discord.Embed(
+            title="Выставленые игроки на голосование",
+            description="Голосование проходит в порядке выстовления игроков",
+            colour=discord.Colour.blue()
+        )
+        games[ctx.guild.id].embed_p.set_footer(text='Хорошей игры')
+        # embed_p.set_image(url='https://2ch.hk/b/arch/2020-07-07/src/224156532/15940650663840.png')
+        games[ctx.guild.id].embed_p.add_field(name='Номера:', value='\n'.join(
+            [str(i) + " - " + str(games[ctx.guild.id].d[i].mention) for i in games[ctx.guild.id].p_pl]),
+                          inline=False)
+        await channel_text.send(embed=games[ctx.guild.id].embed_p)
 
 
 # функция воспроизведения звуков
@@ -316,6 +328,17 @@ async def golosovanie(ctx):
     del games[ctx.guild.id].d[yo]
 
 
+async def night(ctx):
+    for i in games[ctx.guild.id].maf:
+        await i.send(embed=games[ctx.ctx.guild.id].embed)
+        await i.send("Отправьте номер игрока, которого хотите убить")
+    await games[ctx.guild.id].sherif.send(embed=games[ctx.ctx.guild.id].embed)
+    # try:
+    #     msg = await bot.wait_for('message', timeout=20.0)
+    # except asyncio.TimeoutError:
+
+
+
 async def check(ctx, number):
     user = bot.get_user(games[ctx.guild.id].d_list[number].id)
     await user.send('Отправьте номер для проверки, у вас есть 10 секунд')
@@ -332,18 +355,18 @@ async def check(ctx, number):
     if not s.isdigit():
         await channel_text.send("Напишите существующий номер")
 
-    if number == don_random:
-        if s == acab_random:
+    if number == games[ctx.guild.id].don_random:
+        if s == games[ctx.guild.id].acab_random:
             await user.send("Роль игрока под номером" + s + "- Коммисар.")
         # elif s == doctor_random:
         #     await user.send("Роль игрока под номером" + s + "- Доктор.")
         else:
             await user.send("Роль игрока под номером" + s + "- Мирный житель.")
 
-    if number == acab_random:
+    if number == games[ctx.guild.id].acab_random:
         if s in games[ctx.guild.id].maf:
             await user.send("Роль игрока под номером" + s + "- Мафия.")
-        elif s == don_random:
+        elif s == games[ctx.guild.id].don_random:
             await user.send("Роль игрока под номером" + s + "- Дон.")
         else:
             await user.send("Роль игрока под номером" + s + "- Не мафия.")
