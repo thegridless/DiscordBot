@@ -103,13 +103,12 @@ async def start(ctx):
         await element.move_to(channel_voice)
         # await element.edit(mute=True)
 
-    await t_rand(ctx)
+    await t_rand(ctx) #создается словарь d
     await roles(ctx)  # выдача ролей
     # await asyncio.sleep(10)
     # РАСКОМЕНТИТЬ
     await game(ctx)
     await golosovanie(ctx)
-    await asyncio.sleep(5)
     # await playSound(ctx, _source=sounds[0])
 
 
@@ -133,31 +132,32 @@ async def roles(ctx):  # рабочая отправляет в лс кто ты
     global doctor_random
     global don_random
     f = 0
-    global maf
-    maf = []
     m_count = len(games[ctx.guild.id].players) / 3
     round(m_count)
     while f < m_count:
         jke = random.randint(0, len(games[ctx.guild.id].players) - 1)
-        if jke in maf:
+        user = bot.get_user(games[ctx.guild.id].players[jke].id)
+        if user in games[ctx.guild.id].maf:
             f -= 1
         else:
-            maf.append(jke)
+            games[ctx.guild.id].maf.append(user)
         f += 1
-    maf.sort()
+    # maf.sort()
 
-    don_random = random.choice(maf)
-    user1 = bot.get_user(games[ctx.guild.id].players[don_random].id)
-    await user1.send('Ваша роль - Дон.')
+    print(games[ctx.guild.id].maf)
+    don_random = random.choice(games[ctx.guild.id].maf)
+    # user1 = bot.get_user(games[ctx.guild.id].players[don_random].id)
+    await don_random.send('Ваша роль - Дон.')
 
     # выдача роли полицая
     acab_random = random.randint(0, len(games[ctx.guild.id].players) - 1)
-    while acab_random in maf:
+    sherif = bot.get_user(games[ctx.guild.id].players[acab_random].id)
+    while sherif in games[ctx.guild.id].maf:
         acab_random = random.randint(0, len(games[ctx.guild.id].players) - 1)
-        break
+        sherif = bot.get_user(games[ctx.guild.id].players[acab_random].id)
 
-    user2 = bot.get_user(games[ctx.guild.id].players[acab_random].id)
-    await user2.send('Ваша роль - Комиссар.')
+    # user2 = bot.get_user(games[ctx.guild.id].players[acab_random].id)
+    await sherif.send('Ваша роль - Комиссар.')
 
     # doctor_random = random.randint(0, len(games[ctx.guild.id].players) - 1)
     # while doctor_random in maf or doctor_random == acab_random:
@@ -168,21 +168,21 @@ async def roles(ctx):  # рабочая отправляет в лс кто ты
     # await user3.send('Ваша роль - Доктор.')
 
     j = 0
-    for i in range(len(games[ctx.guild.id].players)):
-        if i == maf[j]:
+    for i in games[ctx.guild.id].players:
+        if i == games[ctx.guild.id].maf[j]:
             if i == don_random:
                 continue
             else:
-                user = bot.get_user(games[ctx.guild.id].players[i].id)
-                await user.send('Ваша роль - Мафия.')
-                if j < len(maf) - 1:
+                # user = bot.get_user(games[ctx.guild.id].players[i].id)
+                await i.send('Ваша роль - Мафия.')
+                if j < len(games[ctx.guild.id].maf) - 1:
                     j += 1
         else:
-            if i == acab_random: # or i == doctor_random:
+            if i == sherif: # or i == doctor_random:
                 continue
             else:
-                user = bot.get_user(games[ctx.guild.id].players[i].id)
-                await user.send('Ваша роль - Мирный житель.')
+                # user = bot.get_user(games[ctx.guild.id].players[i].id)
+                await i.send('Ваша роль - Мирный житель.')
     # выдача роли дона
 
 
@@ -341,7 +341,7 @@ async def check(ctx, number):
             await user.send("Роль игрока под номером" + s + "- Мирный житель.")
 
     if number == acab_random:
-        if s in maf:
+        if s in games[ctx.guild.id].maf:
             await user.send("Роль игрока под номером" + s + "- Мафия.")
         elif s == don_random:
             await user.send("Роль игрока под номером" + s + "- Дон.")
