@@ -33,6 +33,7 @@ class Game:
         self.end_of_game = False
         self.embed = 0
         self.embed1 = 0
+        self.embed3 = 0
         self.embed_p = 0
         self.acab_random = 0
         self.don_random = 0
@@ -164,6 +165,7 @@ async def roles(ctx):  # рабочая отправляет в лс кто ты
     # user1 = bot.get_user(games[ctx.guild.id].players[don_random].id)
     await games[ctx.guild.id].don_random.send('Ваша роль - Дон.')
 
+
     # выдача роли полицая
     games[ctx.guild.id].acab_random = random.randint(0, len(games[ctx.guild.id].players) - 1)
     games[ctx.guild.id].sherif = bot.get_user(games[ctx.guild.id].players[games[ctx.guild.id].acab_random].id)
@@ -196,7 +198,28 @@ async def roles(ctx):  # рабочая отправляет в лс кто ты
             else:
                 # user = bot.get_user(games[ctx.guild.id].players[i].id)
                 await i.send('Ваша роль - Мирный житель.')
-    # выдача роли дона
+
+    # список всей мафии
+    for i in games[ctx.guild.id].maf:
+
+        games[ctx.guild.id].embed3 = discord.Embed(
+            colour=discord.Colour.red()
+        )
+        games[ctx.guild.id].embed3.add_field(name='Список участников, играющих за мафию:\n',
+                                             value=','.join([str(elem.mention) for elem in games[ctx.guild.id].maf]),
+                                             inline=False)
+
+
+        if i == games[ctx.guild.id].don_random:
+            await i.send(embed=games[ctx.guild.id].embed3)
+        else:
+            await i.send(embed=games[ctx.guild.id].embed3)
+            await i.send("Игрок " + games[ctx.guild.id].don_random.mention + " играет роль Дона.")
+
+
+
+
+
 
 
 async def t_rand(ctx):
