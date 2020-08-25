@@ -44,6 +44,9 @@ class Game:
         self.s_check = 0 #номер проверяемого игрока шерифом
         self.d_check = 0 #номер проверяемого игрока доном
         self.pm = [] #массив мафии, где хранятся мафии кот написали кого убить
+        self.max_g = 0 #максимальное кол-во голосов за одного игрока
+        self.ravg = False
+        self.dopravg = False
 
 @bot.command(pass_context=True)  # разрешаем передавать агрументы
 async def play(ctx):  # функция для !play
@@ -124,7 +127,7 @@ async def start(ctx):
         if len(games[ctx.guild.id].p_pl)!=0:
             await golosovanie(ctx)
         await night(ctx)
-    # await playSound(ctx, _source=sounds[0])
+    await playSound(ctx, _source=sounds[0])
 
     if len(games[ctx.guild.id].maf)==0:
         await channel_text.send("Игра закончена победой мирный!!!")
@@ -150,7 +153,7 @@ async def stop(ctx):  # функция для удаления каналов
 async def roles(ctx):  # рабочая отправляет в лс кто ты есть на самом деле
 
     f = 0
-    m_count = len(games[ctx.guild.id].players) / 2.5
+    m_count = len(games[ctx.guild.id].players) / 4
     round(m_count)
     while f < m_count:
         jke = random.randint(0, len(games[ctx.guild.id].players) - 1)
@@ -248,11 +251,6 @@ async def t_rand(ctx):
 
 async def game(ctx):
     await channel_text.send("Игра началась!!!")
-
-
-    print(games[ctx.guild.id].d)
-    print(len(games[ctx.guild.id].d_list))
-    print(len(games[ctx.guild.id].maf))
     if len(games[ctx.guild.id].d_list)-len(games[ctx.guild.id].maf)<=len(games[ctx.guild.id].maf) or len(games[ctx.guild.id].maf)==0:
         games[ctx.guild.id].end_of_game=True
     else:
@@ -324,53 +322,86 @@ async def golosovanie(ctx):
     if games[ctx.guild.id].end_of_game==True:
         pass
     else:
-        for i in range(len(games[ctx.guild.id].p_pl)):
-            await channel_text.send("Игрок " + str(games[ctx.guild.id].p_pl[i]) + " - " + games[ctx.guild.id].d[
-                games[ctx.guild.id].p_pl[i]].mention + ". Ваша минута!\n Оправдывайся")
-            await asyncio.sleep(5)
+        while games[ctx.guild.id].ravg==False:
+            for i in range(len(games[ctx.guild.id].p_pl)):
+                await channel_text.send("Игрок " + str(games[ctx.guild.id].p_pl[i]) + " - " + games[ctx.guild.id].d[
+                    games[ctx.guild.id].p_pl[i]].mention + ". Ваша минута!\n Оправдывайся")
+                await asyncio.sleep(5)
 
 
-        for i in range(len(games[ctx.guild.id].p_pl) - 1):
-            await channel_text.send(
-                'Голосуем за игрока ' + str(games[ctx.guild.id].p_pl[i]) + " - " + games[ctx.guild.id].d[
-                    games[ctx.guild.id].p_pl[i]].mention + ", если считаете, что он мафия, напишите плюсик")
-            t_end = time.time() + 10
-            counter = 0
-            while time.time() < t_end:
-                try:
-                    msg = await bot.wait_for('message', timeout=10.0)
-                    s = msg.content
-                    if s != '+':
-                        await channel_text.send(str(msg.author.mention) + ", напишите плюсик")
-                    elif msg.author in games[ctx.guild.id].g_list:
-                        await channel_text.send(str(msg.author.mention) + ", вы уже голосовали!!!")
-                    else:
-                        games[ctx.guild.id].g_list.append(msg.author)
-                        counter += 1
-                except asyncio.TimeoutError:
+            for i in range(len(games[ctx.guild.id].p_pl) - 1):
+                await channel_text.send(
+                    'Голосуем за игрока ' + str(games[ctx.guild.id].p_pl[i]) + " - " + games[ctx.guild.id].d[
+                        games[ctx.guild.id].p_pl[i]].mention + ", если считаете, что он мафия, напишите плюсик")
+                t_end = time.time() + 10
+                counter = 0
+                while time.time() < t_end:
+                    try:
+                        msg = await bot.wait_for('message', timeout=10.0)
+                        s = msg.content
+                        if s != '+':
+                            await channel_text.send(str(msg.author.mention) + ", напишите плюсик")
+                        elif msg.author in games[ctx.guild.id].g_list:
+                            await channel_text.send(str(msg.author.mention) + ", вы уже голосовали!!!")
+                        else:
+                            games[ctx.guild.id].g_list.append(msg.author)
+                            counter += 1
+                    except asyncio.TimeoutError:
+                        break
+
+                await channel_text.send(
+                    'За исключение игрока ' + str(games[ctx.guild.id].p_pl[i]) + " - " + games[ctx.guild.id].d[
+                        games[ctx.guild.id].p_pl[i]].mention + 'проголосовало ' + str(counter) + ' человек(а)')
+                games[ctx.guild.id].p_pl1.update({games[ctx.guild.id].p_pl[i]:counter })
+
+            nonvoted = len(games[ctx.guild.id].d_list) - len(games[ctx.guild.id].g_list)  # не проголосовавшие
+            games[ctx.guild.id].p_pl1.update({games[ctx.guild.id].p_pl[-1]: nonvoted})
+
+            # берем ключи сортируем и по наибольшему ключу вычисляем кикнутого
+
+            games[ctx.guild.id].max_g = max(list(games[ctx.guild.id].p_pl1.values()))
+
+            games[ctx.guild.id].g_list = []
+            games[ctx.guild.id].p_pl = []
+
+            for key,value in games[ctx.guild.id].p_pl1.items():
+                if  games[ctx.guild.id].max_g==value:
+                    games[ctx.guild.id].p_pl.append(key)
+
+
+            if len(games[ctx.guild.id].p_pl)>1:
+                if games[ctx.guild.id].dopravg==True:
+                    await channel_text.send("Два додика уходят")
+                    for i in games[ctx.guild.id].p_pl:
+                        await channel_text.send(
+                            'Игрок ' + games[ctx.guild.id].d[i].mention + ' покидает игру')
+                        if games[ctx.guild.id].d[i] in games[ctx.guild.id].maf:
+                            games[ctx.guild.id].maf.remove(games[ctx.guild.id].d[i])
+                        del games[ctx.guild.id].d[i]
+                        if len(games[ctx.guild.id].d) - len(games[ctx.guild.id].maf) <= len(
+                                games[ctx.guild.id].maf) or len(
+                                games[ctx.guild.id].maf) == 0:
+                            games[ctx.guild.id].end_of_game = True
+                        games[ctx.guild.id].d_list.remove(i)
                     break
+                games[ctx.guild.id].dopravg=True
+                await channel_text.send("Переголосование")
+            else:
+                games[ctx.guild.id].ravg = True
 
+        if(games[ctx.guild.id].dopravg!=True):
             await channel_text.send(
-                'За исключение игрока ' + str(games[ctx.guild.id].p_pl[i]) + " - " + games[ctx.guild.id].d[
-                    games[ctx.guild.id].p_pl[i]].mention + 'проголосовало ' + str(counter) + ' человек(а)')
-            games[ctx.guild.id].p_pl1.update({counter: games[ctx.guild.id].p_pl[i]})
+                'Игрок ' + games[ctx.guild.id].d[games[ctx.guild.id].p_pl[0]].mention + ' покидает игру')
+            if games[ctx.guild.id].d[games[ctx.guild.id].p_pl[0]] in games[ctx.guild.id].maf:
+                games[ctx.guild.id].maf.remove(games[ctx.guild.id].d[games[ctx.guild.id].p_pl[0]])
+            del games[ctx.guild.id].d[games[ctx.guild.id].p_pl[0]]
+            if len(games[ctx.guild.id].d) - len(games[ctx.guild.id].maf) <= len(games[ctx.guild.id].maf) or len(
+                    games[ctx.guild.id].maf) == 0:
+                games[ctx.guild.id].end_of_game = True
+            games[ctx.guild.id].d_list.remove(games[ctx.guild.id].p_pl[0])
 
-        nonvoted = len(games[ctx.guild.id].d_list) - len(games[ctx.guild.id].g_list)  # не проголосовавшие
-        games[ctx.guild.id].p_pl1.update({nonvoted: games[ctx.guild.id].p_pl[-1]})
 
-        # берем ключи сортируем и по наибольшему ключу вычисляем кикнутого
 
-        p = list(games[ctx.guild.id].p_pl1.keys())
-        p.sort()
-        # key - максимальное кло-во голосов
-        key = p.pop()
-        yo = games[ctx.guild.id].p_pl1[key]
-        await channel_text.send('Игрок ' + games[ctx.guild.id].d[yo].mention + ' покидает игру')
-        if games[ctx.guild.id].d[yo] in games[ctx.guild.id].maf:
-            games[ctx.guild.id].maf.remove(games[ctx.guild.id].d[yo])
-        del games[ctx.guild.id].d[yo]
-        if len(games[ctx.guild.id].d)-len(games[ctx.guild.id].maf)<=len(games[ctx.guild.id].maf) or len(games[ctx.guild.id].maf)==0:
-            games[ctx.guild.id].end_of_game=True
 
 async def night(ctx):
     if games[ctx.guild.id].end_of_game==True:
