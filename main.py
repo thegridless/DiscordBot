@@ -56,6 +56,7 @@ class Game:
         self.counter = 0
         self.nonvoted = 0 #оставшиеся голоса
         self.i = 0
+        self.pmcheck = False
 
 @bot.command(pass_context=True)  # разрешаем передавать агрументы
 async def play(ctx):  # функция для !play
@@ -106,6 +107,8 @@ async def rules(ctx):
 async def start(ctx):
     if ctx.guild==None:
         await ctx.send("Отправляйте сообщения в текстовые каналы сервера")
+    elif len(games[ctx.guild.id].players)<4:
+        await ctx.send("Недостаточно игроков")
     else:
         if ctx.message.author == games[ctx.guild.id].players[0]:
             # не забыть раскоментить
@@ -146,7 +149,8 @@ async def start(ctx):
                 await games[ctx.guild.id].channel_text.send("Игра закончена победой мирный!!!")
             else:
                 await games[ctx.guild.id].channel_text.send("Игра закончена победой мафии!!!")
-
+            await ctx.send("Через 10 секунд каналы удалятся")
+            await asyncio.sleep(10)
             await stop(ctx)
         else:
             await ctx.send("Только лидер лобби может начать игру")
@@ -168,7 +172,7 @@ async def stop(ctx):  # функция для удаления каналов
 
 async def roles(ctx):  # рабочая отправляет в лс кто ты есть на самом деле
 
-    games[ctx.guild.id].m_count = len(games[ctx.guild.id].players) / 4
+    games[ctx.guild.id].m_count = len(games[ctx.guild.id].players) / 5
     round(games[ctx.guild.id].m_count)
     while games[ctx.guild.id].f  < games[ctx.guild.id].m_count:
         games[ctx.guild.id].jke = random.randint(0, len(games[ctx.guild.id].players) - 1)
@@ -203,21 +207,21 @@ async def roles(ctx):  # рабочая отправляет в лс кто ты
     # user3 = bot.get_user(games[ctx.guild.id].players[doctor_random].id)
     # await user3.send('Ваша роль - Доктор.')
 
-    for i in games[ctx.guild.id].players:
-        if i in games[ctx.guild.id].maf:
-            if i == games[ctx.guild.id].don_random:
+    for games[ctx.guild.id].i in games[ctx.guild.id].players:
+        if games[ctx.guild.id].i in games[ctx.guild.id].maf:
+            if games[ctx.guild.id].i == games[ctx.guild.id].don_random:
                 continue
             else:
-                await i.send('Ваша роль - Мафия.')
+                await games[ctx.guild.id].i.send('Ваша роль - Мафия.')
         else:
-            if i == games[ctx.guild.id].sherif: # or i == doctor_random:
+            if games[ctx.guild.id].i == games[ctx.guild.id].sherif: # or i == doctor_random:
                 continue
             else:
                 # user = bot.get_user(games[ctx.guild.id].players[i].id)
-                await i.send('Ваша роль - Мирный житель.')
+                await games[ctx.guild.id].i.send('Ваша роль - Мирный житель.')
 
     # список всей мафии
-    for i in games[ctx.guild.id].maf:
+    for games[ctx.guild.id].i in games[ctx.guild.id].maf:
 
         games[ctx.guild.id].embed3 = discord.Embed(
             colour=discord.Colour.red()
@@ -227,11 +231,11 @@ async def roles(ctx):  # рабочая отправляет в лс кто ты
                                              inline=False)
 
 
-        if i == games[ctx.guild.id].don_random:
-            await i.send(embed=games[ctx.guild.id].embed3)
+        if games[ctx.guild.id].i == games[ctx.guild.id].don_random:
+            await games[ctx.guild.id].i.send(embed=games[ctx.guild.id].embed3)
         else:
-            await i.send(embed=games[ctx.guild.id].embed3)
-            await i.send("Игрок " + games[ctx.guild.id].don_random.mention + " играет роль Дона.")
+            await games[ctx.guild.id].i.send(embed=games[ctx.guild.id].embed3)
+            await games[ctx.guild.id].i.send("Игрок " + games[ctx.guild.id].don_random.mention + " играет роль Дона.")
 
 
 
@@ -240,11 +244,11 @@ async def roles(ctx):  # рабочая отправляет в лс кто ты
 
 
 async def t_rand(ctx):
-    for i in games[ctx.guild.id].players:
+    for games[ctx.guild.id].i in games[ctx.guild.id].players:
         games[ctx.guild.id].jke = random.randint(1, len(games[ctx.guild.id].players))
         while games[ctx.guild.id].jke in games[ctx.guild.id].d.keys():
             games[ctx.guild.id].jke = random.randint(1, len(games[ctx.guild.id].players))
-        games[ctx.guild.id].d.update({games[ctx.guild.id].jke: i})
+        games[ctx.guild.id].d.update({games[ctx.guild.id].jke: games[ctx.guild.id].i})
     games[ctx.guild.id].d_list = list(games[ctx.guild.id].d.keys())
     games[ctx.guild.id].d_list.sort()
     # for i in d_list:
@@ -257,7 +261,7 @@ async def t_rand(ctx):
     games[ctx.guild.id].embed1.set_footer(text='Хорошей игры')
     games[ctx.guild.id].embed1.set_image(url = 'https://2ch.hk/b/arch/2020-07-07/src/224156532/15940650663840.png')
     games[ctx.guild.id].embed1.add_field(name = 'Номера:', value = '\n'.join(
-        [str(i) + " - " + str(games[ctx.guild.id].d[i].mention) for i in games[ctx.guild.id].d_list]),
+        [str(games[ctx.guild.id].i) + " - " + str(games[ctx.guild.id].d[games[ctx.guild.id].i].mention) for games[ctx.guild.id].i in games[ctx.guild.id].d_list]),
                      inline=False)
     await games[ctx.guild.id].channel_text.send(embed=games[ctx.guild.id].embed1)
     # print(d)
@@ -268,11 +272,11 @@ async def game(ctx):
     if len(games[ctx.guild.id].d_list)-len(games[ctx.guild.id].maf)<=len(games[ctx.guild.id].maf) or len(games[ctx.guild.id].maf)==0:
         games[ctx.guild.id].end_of_game=True
     else:
-        for i in games[ctx.guild.id].d_list:
+        for games[ctx.guild.id].i in games[ctx.guild.id].d_list:
 
             choice = False
 
-            await games[ctx.guild.id].channel_text.send("Игрок " + str(i) + " - " + str(games[ctx.guild.id].d[i].mention) + ". Ваша минута!\nЕсли вы хотите выставить игрока на голосование напишите его номер в данный чат.")
+            await games[ctx.guild.id].channel_text.send("Игрок " + str(games[ctx.guild.id].i) + " - " + str(games[ctx.guild.id].d[games[ctx.guild.id].i].mention) + ". Ваша минута!\nЕсли вы хотите выставить игрока на голосование напишите его номер в данный чат.")
             games[ctx.guild.id].t_end = time.time() + 5
             while time.time() < games[ctx.guild.id].t_end:
                 try:
@@ -283,7 +287,7 @@ async def game(ctx):
                 s = msg.content
                 if s.isdigit() == False:
                     await games[ctx.guild.id].channel_text.send("Напишите существующий номер")
-                elif msg.author != games[ctx.guild.id].d[i]:
+                elif msg.author != games[ctx.guild.id].d[games[ctx.guild.id].i]:
                     await games[ctx.guild.id].channel_text.send("Сейчас не ваша минута")
                 elif int(s) <= len(games[ctx.guild.id].players) and int(s) > 0 and msg.channel == games[ctx.guild.id].channel_text:
                     if (int(s) in games[ctx.guild.id].p_pl):
@@ -316,7 +320,7 @@ async def game(ctx):
             games[ctx.guild.id].embed_p.set_footer(text='Хорошей игры')
             # embed_p.set_image(url='https://2ch.hk/b/arch/2020-07-07/src/224156532/15940650663840.png')
             games[ctx.guild.id].embed_p.add_field(name='Номера:', value='\n'.join(
-                [str(i) + " - " + str(games[ctx.guild.id].d[i].mention) for i in games[ctx.guild.id].p_pl]),
+                [str(games[ctx.guild.id].i) + " - " + str(games[ctx.guild.id].d[int(games[ctx.guild.id].i)].mention) for games[ctx.guild.id].i in games[ctx.guild.id].p_pl]),
                               inline=False)
             await games[ctx.guild.id].channel_text.send(embed=games[ctx.guild.id].embed_p)
 
@@ -337,16 +341,16 @@ async def golosovanie(ctx):
         pass
     else:
         while games[ctx.guild.id].ravg==False:
-            for i in range(len(games[ctx.guild.id].p_pl)):
-                await games[ctx.guild.id].channel_text.send("Игрок " + str(games[ctx.guild.id].p_pl[i]) + " - " + games[ctx.guild.id].d[
-                    games[ctx.guild.id].p_pl[i]].mention + ". Ваша минута!\n Оправдывайся")
+            for games[ctx.guild.id].i in range(len(games[ctx.guild.id].p_pl)):
+                await games[ctx.guild.id].channel_text.send("Игрок " + str(games[ctx.guild.id].p_pl[games[ctx.guild.id].i]) + " - " + games[ctx.guild.id].d[
+                    games[ctx.guild.id].p_pl[games[ctx.guild.id].i]].mention + ". Ваша минута!\n Оправдывайся")
                 await asyncio.sleep(5)
 
 
-            for i in range(len(games[ctx.guild.id].p_pl) - 1):
+            for games[ctx.guild.id].i in range(len(games[ctx.guild.id].p_pl) - 1):
                 await games[ctx.guild.id].channel_text.send(
-                    'Голосуем за игрока ' + str(games[ctx.guild.id].p_pl[i]) + " - " + games[ctx.guild.id].d[
-                        games[ctx.guild.id].p_pl[i]].mention + ", если считаете, что он мафия, напишите плюсик")
+                    'Голосуем за игрока ' + str(games[ctx.guild.id].p_pl[games[ctx.guild.id].i]) + " - " + games[ctx.guild.id].d[
+                        games[ctx.guild.id].p_pl[games[ctx.guild.id].i]].mention + ", если считаете, что он мафия, напишите плюсик")
                 games[ctx.guild.id].t_end = time.time() + 10
                 while time.time() < games[ctx.guild.id].t_end:
                     try:
@@ -360,15 +364,17 @@ async def golosovanie(ctx):
                             else:
                                 games[ctx.guild.id].g_list.append(msg.author)
                                 games[ctx.guild.id].counter += 1
+                        elif msg.author == "MafiaBot#0059":
+                            pass
                         else:
                             await ctx.send("Вы не участвуете в этой игре")
                     except asyncio.TimeoutError:
                         break
 
                 await games[ctx.guild.id].channel_text.send(
-                    'За исключение игрока ' + str(games[ctx.guild.id].p_pl[i]) + " - " + games[ctx.guild.id].d[
-                        games[ctx.guild.id].p_pl[i]].mention + 'проголосовало ' + str(games[ctx.guild.id].counter) + ' человек(а)')
-                games[ctx.guild.id].p_pl1.update({games[ctx.guild.id].p_pl[i]:games[ctx.guild.id].counter })
+                    'За исключение игрока ' + str(games[ctx.guild.id].p_pl[games[ctx.guild.id].i]) + " - " + games[ctx.guild.id].d[
+                        games[ctx.guild.id].p_pl[games[ctx.guild.id].i]].mention + 'проголосовало ' + str(games[ctx.guild.id].counter) + ' человек(а)')
+                games[ctx.guild.id].p_pl1.update({games[ctx.guild.id].p_pl[games[ctx.guild.id].i]:games[ctx.guild.id].counter })
 
             games[ctx.guild.id].nonvoted = len(games[ctx.guild.id].d_list) - len(games[ctx.guild.id].g_list)  # не проголосовавшие
             games[ctx.guild.id].p_pl1.update({games[ctx.guild.id].p_pl[-1]: games[ctx.guild.id].nonvoted})
@@ -388,17 +394,17 @@ async def golosovanie(ctx):
             if len(games[ctx.guild.id].p_pl)>1:
                 if games[ctx.guild.id].dopravg==True:
                     await games[ctx.guild.id].channel_text.send("Два додика уходят")
-                    for i in games[ctx.guild.id].p_pl:
+                    for games[ctx.guild.id].i in games[ctx.guild.id].p_pl:
                         await games[ctx.guild.id].channel_text.send(
-                            'Игрок ' + games[ctx.guild.id].d[i].mention + ' покидает игру')
-                        if games[ctx.guild.id].d[i] in games[ctx.guild.id].maf:
-                            games[ctx.guild.id].maf.remove(games[ctx.guild.id].d[i])
-                        del games[ctx.guild.id].d[i]
+                            'Игрок ' + games[ctx.guild.id].d[games[ctx.guild.id].i].mention + ' покидает игру')
+                        if games[ctx.guild.id].d[games[ctx.guild.id].i] in games[ctx.guild.id].maf:
+                            games[ctx.guild.id].maf.remove(games[ctx.guild.id].d[games[ctx.guild.id].i])
+                        del games[ctx.guild.id].d[games[ctx.guild.id].i]
                         if len(games[ctx.guild.id].d) - len(games[ctx.guild.id].maf) <= len(
                                 games[ctx.guild.id].maf) or len(
                                 games[ctx.guild.id].maf) == 0:
                             games[ctx.guild.id].end_of_game = True
-                        games[ctx.guild.id].d_list.remove(i)
+                        games[ctx.guild.id].d_list.remove(games[ctx.guild.id].i)
                     break
                 games[ctx.guild.id].dopravg=True
                 await games[ctx.guild.id].channel_text.send("Переголосование")
@@ -426,20 +432,20 @@ async def night(ctx):
         await games[ctx.guild.id].channel_text.send("Наступает ночь\nМафия и шериф получат сообщения в лс")
 
         #убийство мафии
-        for i in games[ctx.guild.id].maf:
-            if i in games[ctx.guild.id].d.values():
-                await i.send(embed=games[ctx.guild.id].embed1)
-                await i.send("Отправьте номер игрока, которого хотите убить")
+        for games[ctx.guild.id].i in games[ctx.guild.id].maf:
+            if games[ctx.guild.id].i in games[ctx.guild.id].d.values():
+                await games[ctx.guild.id].i.send(embed=games[ctx.guild.id].embed1)
+                await games[ctx.guild.id].i.send("Отправьте номер игрока, которого хотите убить")
 
         #ждем сообщения от мафии
 
         games[ctx.guild.id].t_end = time.time() + 15
-        while time.time() < games[ctx.guild.id].t_end:
+        while games[ctx.guild.id].pmcheck==False:
             try:
-                msg = await bot.wait_for('message', timeout=15.0)
+                msg = await bot.wait_for('message')
                 if msg.author not in games[ctx.guild.id].maf:
                     pass
-                elif msg.author in games[ctx.guild.id].d.values():
+                elif msg.author not in games[ctx.guild.id].d.values():
                     await msg.author.send("Вы мертвы")
                 elif msg.content.isdigit() == False:
                     await msg.author.send("Напишите существующий номер")
@@ -456,10 +462,11 @@ async def night(ctx):
                     else:
                         games[ctx.guild.id].mafia_kill.update({msg.author: msg.content})
                         await msg.author.send("Вы выбрали игрока под номером " + msg.content)
-
+                if len(games[ctx.guild.id].pm) == len(games[ctx.guild.id].maf):
+                    games[ctx.guild.id].pmcheck=True
             except asyncio.TimeoutError:
-                for i in games[ctx.guild.id].maf:
-                    await i.send("Ваше время закончилось")
+                for games[ctx.guild.id].i in games[ctx.guild.id].maf:
+                    await games[ctx.guild.id].i.send("Ваше время закончилось")
 
 
         games[ctx.guild.id].m_kills = games[ctx.guild.id].mafia_kill.values()
